@@ -1,0 +1,84 @@
+name: Sitemap Checker (crazygames + playgama)
+
+on:
+  workflow_dispatch:
+    inputs:
+      since_hours:
+        description: "Time window (hours) to collect first-seen games"
+        required: false
+        default: "24"
+      insecure:
+        description: "Disable TLS verification for checker (true/false)"
+        required: false
+        default: "false"
+  schedule:
+    # Run daily at 08:00 Beijing time (UTC+8) => 00:00 UTC
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Restore last cached DB/log (best-effort). The key includes current file hash so
+      # each update can be saved as a new cache entry; restore-keys picks the newest match.
+      - name: Restore cache (db)
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            sitemaps.db
+          key: sitemap-db-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            sitemap-db-${{ github.ref_name }}-
+
+      - name: Update DB by checking all sites
+        env:
+          INSECURE: ${{ github.event.inputs.insecure || 'false' }}
+        run: |
+          if [ "${INSECURE}" = "true" ]; then
+            python checker.py --all --insecure --show 0
+          else
+            python checker.py --all --show 0
+          fi
+
+      - name: Collect last 24h game names (write log + print CSV)
+        env:
+          SINCE_HOURS: ${{ github.event.inputs.since_hours || '24' }}
+        run: |
+          LOG_DATE="$(TZ=Asia/Shanghai date +%Y%m%d)"
+          LOG_FILE="logs/${LOG_DATE}.log"
+          mkdir -p logs
+          echo "LOG_DATE=${LOG_DATE}" >> "${GITHUB_ENV}"
+          echo "LOG_FILE=${LOG_FILE}" >> "${GITHUB_ENV}"
+          python collect_new_games.py --all --since-hours "${SINCE_HOURS}" --log-file "${LOG_FILE}"
+
+      - name: Save cache (db)
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            sitemaps.db
+          key: sitemap-db-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload log artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: new_games_${{ env.LOG_DATE }}
+          path: ${{ env.LOG_FILE }}
+          if-no-files-found: warn
