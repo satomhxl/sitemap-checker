@@ -154,16 +154,34 @@ def main() -> int:
     try:
         _ensure_schema_exists(conn)
 
+        # Collect games per site (for section-based output)
+        site_games: dict[str, List[str]] = {}
         all_names: List[str] = []
         for site_name in selected_sites:
             cfg = SITES[site_name]
             urls = get_recent_urls(conn, site=cfg.name, since_ts=since_ts)
             names = collect_names(urls, cfg)
+            site_games[cfg.name] = names
             if args.with_site_prefix:
                 names = [f"{cfg.name}:{n}" for n in names]
             all_names.extend(names)
 
-        # Deduplicate across sites too (while keeping order)
+        # Build log lines with section headers
+        log_lines: List[str] = []
+        # Add timestamp header
+        log_lines.append(f"# {_utc_iso(now_ts)}")
+        log_lines.append("")
+        for site_name, names in site_games.items():
+            if names:
+                log_lines.append(f"## {site_name}")
+                for name in names:
+                    log_lines.append(f"- {name}")
+                log_lines.append("")  # Empty line between sections
+
+        # Log format: section-based with headers.
+        append_log_lines(args.log_file, log_lines)
+
+        # Deduplicate across sites for stdout (keeping order)
         seen: Set[str] = set()
         deduped: List[str] = []
         for n in all_names:
@@ -171,9 +189,6 @@ def main() -> int:
                 continue
             seen.add(n)
             deduped.append(n)
-
-        # Log format: one game per line (append).
-        append_log_lines(args.log_file, deduped)
 
         # Only print CSV when running manually (interactive terminal), unless overridden.
         should_print = False
