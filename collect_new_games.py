@@ -175,7 +175,7 @@ def main() -> int:
             if names:
                 log_lines.append(f"## {site_name}")
                 for name in names:
-                    log_lines.append(f"- {name}")
+                    log_lines.append(name)
                 log_lines.append("")  # Empty line between sections
 
         # Log format: section-based with headers.
