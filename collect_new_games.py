@@ -25,6 +25,10 @@ SITES: dict[str, CollectConfig] = {
         name="playgama",
         slug_path_regex=re.compile(r"^/game/([^/?#]+)/?$"),
     ),
+    "gamedistribution": CollectConfig(
+        name="gamedistribution",
+        slug_path_regex=re.compile(r"^/games/([^/?#]+)/?$"),
+    ),
 }
 
 

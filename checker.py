@@ -33,6 +33,12 @@ SITES: dict[str, SiteConfig] = {
         sitemap_url="https://playgama.com/sitemaps/v1/sitemap-index.xml",
         include_prefixes=("https://playgama.com/game/",),
     ),
+    "gamedistribution": SiteConfig(
+        name="gamedistribution",
+        # Declared in https://gamedistribution.com/robots.txt
+        sitemap_url="https://gamedistribution.com/sitemap-index.xml",
+        include_prefixes=("https://gamedistribution.com/games/",),
+    ),
 }
 
 

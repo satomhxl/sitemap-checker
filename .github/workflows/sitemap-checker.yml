@@ -1,4 +1,4 @@
-name: Sitemap Checker (crazygames + playgama)
+name: Game Sitemap Checker
 
 on:
   workflow_dispatch:
