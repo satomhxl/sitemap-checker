@@ -53,9 +53,9 @@ jobs:
           INSECURE: ${{ github.event.inputs.insecure || 'false' }}
         run: |
           if [ "${INSECURE}" = "true" ]; then
-            python checker.py --all --insecure --show 0
+            python checker.py --all --insecure --show 5
           else
-            python checker.py --all --show 0
+            python checker.py --all --show 5
           fi
 
       - name: Collect last 24h game names (write log + print CSV)
@@ -63,7 +63,7 @@ jobs:
           SINCE_HOURS: ${{ github.event.inputs.since_hours || '24' }}
         run: |
           LOG_DATE="$(TZ=Asia/Shanghai date +%Y%m%d)"
-          LOG_FILE="logs/${LOG_DATE}.log"
+          LOG_FILE="logs/${LOG_DATE}.txt"
           mkdir -p logs
           echo "LOG_DATE=${LOG_DATE}" >> "${GITHUB_ENV}"
           echo "LOG_FILE=${LOG_FILE}" >> "${GITHUB_ENV}"

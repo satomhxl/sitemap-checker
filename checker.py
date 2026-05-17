@@ -15,8 +15,9 @@ from requests.exceptions import SSLError
 @dataclass(frozen=True)
 class SiteConfig:
     name: str
-    sitemap_url: str
+    sitemap_urls: Tuple[str, ...]
     include_prefixes: Tuple[str, ...]
+    exclude_prefixes: Tuple[str, ...] = ()
     # Optional extra filter hook for sites with more complex rules.
     extra_filter: Optional[Callable[[str], bool]] = None
 
@@ -24,20 +25,75 @@ class SiteConfig:
 SITES: dict[str, SiteConfig] = {
     "crazygames": SiteConfig(
         name="crazygames",
-        sitemap_url="https://www.crazygames.com/en/sitemap",
+        sitemap_urls=("https://www.crazygames.com/en/sitemap",),
         include_prefixes=("https://www.crazygames.com/game/",),
     ),
     "playgama": SiteConfig(
         name="playgama",
         # Declared in https://playgama.com/robots.txt
-        sitemap_url="https://playgama.com/sitemaps/v1/sitemap-index.xml",
+        sitemap_urls=("https://playgama.com/sitemaps/v1/sitemap-index.xml",),
         include_prefixes=("https://playgama.com/game/",),
     ),
     "gamedistribution": SiteConfig(
         name="gamedistribution",
         # Declared in https://gamedistribution.com/robots.txt
-        sitemap_url="https://gamedistribution.com/sitemap-index.xml",
+        sitemap_urls=("https://gamedistribution.com/sitemap-index.xml",),
         include_prefixes=("https://gamedistribution.com/games/",),
+    ),
+    "gamemonetize": SiteConfig(
+        name="gamemonetize",
+        sitemap_urls=("https://gamemonetize.com/sitemap.xml",),
+        include_prefixes=("https://gamemonetize.com/",),
+        # Individual game URLs end with '-game', while category/tag pages end with '-games'
+        extra_filter=lambda url: url.endswith("-game"),
+    ),
+    "mediaio": SiteConfig(
+        name="mediaio",
+        # Declared in https://www.media.io/robots.txt
+        sitemap_urls=(
+            "https://www.media.io/sitemap.xml",
+            "https://www.media.io/2025sitemap.xml",
+            "https://www.media.io/br/sitemap.xml",
+            "https://www.media.io/es/sitemap.xml",
+            "https://www.media.io/id/sitemap.xml",
+            "https://www.media.io/fr/sitemap.xml",
+            "https://www.media.io/jp/sitemap.xml",
+            "https://www.media.io/it/sitemap.xml",
+            "https://www.media.io/ko/sitemap.xml",
+            "https://www.media.io/de/sitemap.xml",
+        ),
+        include_prefixes=("https://www.media.io/", "http://media.io/"),
+        exclude_prefixes=(
+            "https://www.media.io/thankyou/",
+            "https://www.media.io/survey/",
+            "https://www.media.io/store/",
+            "https://www.media.io/buy/",
+            "https://www.media.io/pricing/",
+            "http://media.io/thankyou/",
+            "http://media.io/survey/",
+            "http://media.io/store/",
+            "http://media.io/buy/",
+            "http://media.io/pricing/",
+        ),
+        extra_filter=lambda url: not any(
+            marker in url
+            for marker in (
+                "/index-a.html",
+                "/index-b.html",
+                "/404",
+                "/campaign/event-rules.html",
+            )
+        ),
+    ),
+    "pincel": SiteConfig(
+        name="pincel",
+        # Declared in https://pincel.app/robots.txt
+        sitemap_urls=("https://pincel.app/sitemap.xml",),
+        include_prefixes=(
+            "https://pincel.app/tools/",
+            "https://pincel.app/free/",
+            "https://pincel.app/media/",
+        ),
     ),
 }
 
@@ -137,13 +193,15 @@ def fetch_sitemap_urls(
     return sorted(set(locs))
 
 
-def filter_game_urls(urls: Iterable[str], site: SiteConfig) -> List[str]:
+def filter_site_urls(urls: Iterable[str], site: SiteConfig) -> List[str]:
     filtered: List[str] = []
     for url in urls:
         u = url.strip()
         if not u:
             continue
         if site.include_prefixes and not any(u.startswith(p) for p in site.include_prefixes):
+            continue
+        if site.exclude_prefixes and any(u.startswith(p) for p in site.exclude_prefixes):
             continue
         if site.extra_filter and not site.extra_filter(u):
             continue
@@ -270,19 +328,21 @@ def check_site(
     """
     Returns (newly_inserted_this_run, recent_within_window).
     """
-    all_urls = fetch_sitemap_urls(site.sitemap_url, insecure=insecure)
-    game_urls = filter_game_urls(all_urls, site)
-    print(f"[{site.name}] Found {len(game_urls)} unique game URL(s) after filtering")
+    all_urls: Set[str] = set()
+    for sitemap_url in site.sitemap_urls:
+        all_urls.update(fetch_sitemap_urls(sitemap_url, insecure=insecure))
+    site_urls = filter_site_urls(all_urls, site)
+    print(f"[{site.name}] Found {len(site_urls)} unique URL(s) after filtering")
 
     now_ts = _utc_now_ts()
-    new_urls = save_new_urls(conn, site=site.name, urls=game_urls, now_ts=now_ts)
+    new_urls = save_new_urls(conn, site=site.name, urls=site_urls, now_ts=now_ts)
     since_ts = now_ts - int(since_hours * 3600)
     recent_urls = get_recent_urls(conn, site=site.name, since_ts=since_ts)
     return new_urls, recent_urls
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Monitor game sitemaps and print newly discovered games.")
+    p = argparse.ArgumentParser(description="Monitor sitemaps and print newly discovered URLs.")
     p.add_argument(
         "--site",
         action="append",
@@ -341,18 +401,18 @@ def main() -> int:
                 continue
 
             if new_urls:
-                print(f"[{site.name}] New game(s) discovered in THIS run: {len(new_urls)}")
+                print(f"[{site.name}] New URL(s) discovered in THIS run: {len(new_urls)}")
                 for i, url in enumerate(_tail(new_urls, args.show), 1):
                     print(f"  {i}. {url}")
             else:
-                print(f"[{site.name}] No new games discovered in this run.")
+                print(f"[{site.name}] No new URLs discovered in this run.")
 
             if recent_urls:
-                print(f"[{site.name}] Games first seen in last {args.since_hours:g} hour(s): {len(recent_urls)}")
+                print(f"[{site.name}] URLs first seen in last {args.since_hours:g} hour(s): {len(recent_urls)}")
                 for i, url in enumerate(_tail(recent_urls, args.show), 1):
                     print(f"  {i}. {url}")
             else:
-                print(f"[{site.name}] No games first seen in last {args.since_hours:g} hour(s).")
+                print(f"[{site.name}] No URLs first seen in last {args.since_hours:g} hour(s).")
 
         print(f"\n{'='*60}")
         return 0

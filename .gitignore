@@ -1,0 +1,22 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# macOS/local editor noise
+.DS_Store
+
+# Local runtime state. Keep this on the runtime machine unless explicitly
+# deciding to version the SQLite baseline.
+sitemaps.db
+sitemaps.db-shm
+sitemaps.db-wal
+
+# Local ad hoc logs.
+*.log
+tmp_*.txt
+tmp_*.log
+new_games_24h.txt
+
+# Daily reports are intentionally not ignored. The Mac Mini can commit
+# reports/ back to GitHub as the human-readable archive.

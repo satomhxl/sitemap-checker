@@ -29,6 +29,11 @@ SITES: dict[str, CollectConfig] = {
         name="gamedistribution",
         slug_path_regex=re.compile(r"^/games/([^/?#]+)/?$"),
     ),
+    "gamemonetize": CollectConfig(
+        name="gamemonetize",
+        # Game URLs are like /bubble-hunter-game, extract the part before '-game'
+        slug_path_regex=re.compile(r"^/([^/?#]+)-game$"),
+    ),
 }
 
 
@@ -125,7 +130,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--all", action="store_true", help="Collect for all sites (default if --site is not provided).")
     p.add_argument("--db", default="sitemaps.db", help="SQLite DB path.")
     p.add_argument("--since-hours", type=float, default=24.0, help="Time window (hours) to collect first-seen URLs.")
-    p.add_argument("--log-file", default="new_games_24h.log", help="Append output to this log file.")
+    p.add_argument("--log-file", default="new_games_24h.txt", help="Append output to this log file.")
     p.add_argument(
         "--with-site-prefix",
         action="store_true",
