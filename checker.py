@@ -9,7 +9,7 @@ from xml.etree import ElementTree
 
 import requests
 import urllib3
-from requests.exceptions import SSLError
+from requests.exceptions import ConnectionError, SSLError, Timeout
 
 
 @dataclass(frozen=True)
@@ -118,6 +118,9 @@ def _http_get(url: str, *, timeout_s: int = 30, insecure: bool = False) -> reque
     except SSLError as e:
         hint = "Try running with --insecure, or ensure your Python/OpenSSL + certs are correctly installed."
         raise RuntimeError(f"SSL error fetching {url}. {hint} Original: {e}") from e
+    except (ConnectionError, Timeout) as e:
+        hint = "Network/DNS error. Check host DNS, outbound network access, and the target URL."
+        raise RuntimeError(f"{hint} URL: {url}. Original: {e}") from e
 
 
 def _looks_like_xml(content: bytes) -> bool:
@@ -386,6 +389,7 @@ def main() -> int:
         _maybe_migrate_legacy(conn)
 
         print(f"\n{'='*60}")
+        had_errors = False
         for site_name in selected_sites:
             site = SITES[site_name]
             print(f"\n--- Checking: {site.name} ---")
@@ -397,6 +401,7 @@ def main() -> int:
                     insecure=args.insecure,
                 )
             except Exception as e:
+                had_errors = True
                 print(f"[{site.name}] ERROR: {e}")
                 continue
 
@@ -415,7 +420,7 @@ def main() -> int:
                 print(f"[{site.name}] No URLs first seen in last {args.since_hours:g} hour(s).")
 
         print(f"\n{'='*60}")
-        return 0
+        return 1 if had_errors else 0
     finally:
         conn.close()
 

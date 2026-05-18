@@ -18,5 +18,5 @@ tmp_*.txt
 tmp_*.log
 new_games_24h.txt
 
-# Daily reports are intentionally not ignored. The Mac Mini can commit
-# reports/ back to GitHub as the human-readable archive.
+# Daily report output — generated files, not part of source.
+reports/

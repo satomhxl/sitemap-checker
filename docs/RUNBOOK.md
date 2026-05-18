@@ -179,5 +179,5 @@ When operating this repo:
 - Do not delete or reset `sitemaps.db` unless explicitly asked. It is stateful runtime data.
 - Do not overwrite reports unless the user asks for regeneration.
 - Keep generated reports separate from source-code changes when possible.
-- If network access fails inside a sandbox, rerun the sitemap command with the required permission or ask for approval.
+- If network access fails, check DNS and outbound network access in the host environment before rerunning.
 - For daily usage, prefer `run_daily_report.py` over manually chaining lower-level scripts.
