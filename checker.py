@@ -18,6 +18,7 @@ class SiteConfig:
     sitemap_urls: Tuple[str, ...]
     include_prefixes: Tuple[str, ...]
     exclude_prefixes: Tuple[str, ...] = ()
+    url_transform: Optional[Callable[[str], str]] = None
     # Optional extra filter hook for sites with more complex rules.
     extra_filter: Optional[Callable[[str], bool]] = None
 
@@ -94,6 +95,37 @@ SITES: dict[str, SiteConfig] = {
             "https://pincel.app/free/",
             "https://pincel.app/media/",
         ),
+    ),
+    "notegpt": SiteConfig(
+        name="notegpt",
+        # Declared in https://notegpt.io/robots.txt
+        sitemap_urls=(
+            "https://notegpt.io/sitemap.xml",
+            "https://notegpt.io/sitemap_chatgpt.xml",
+        ),
+        include_prefixes=("https://notegpt.io/",),
+        exclude_prefixes=(
+            "https://notegpt.io/404",
+            "https://notegpt.io/api",
+            "https://notegpt.io/books",
+            "https://notegpt.io/detail",
+            "https://notegpt.io/doc",
+            "https://notegpt.io/my-images",
+            "https://notegpt.io/note",
+            "https://notegpt.io/pay",
+            "https://notegpt.io/pricing",
+            "https://notegpt.io/ppt-editor",
+            "https://notegpt.io/privacy",
+            "https://notegpt.io/s/",
+            "https://notegpt.io/share",
+            "https://notegpt.io/subscription-policies",
+            "https://notegpt.io/summaries",
+            "https://notegpt.io/terms",
+            "https://notegpt.io/user",
+            "https://notegpt.io/workspace",
+        ),
+        url_transform=lambda url: url.replace("https://notegpt.io//", "https://notegpt.io/", 1),
+        extra_filter=lambda url: url.rstrip("/") != "https://notegpt.io",
     ),
 }
 
@@ -202,6 +234,8 @@ def filter_site_urls(urls: Iterable[str], site: SiteConfig) -> List[str]:
         u = url.strip()
         if not u:
             continue
+        if site.url_transform:
+            u = site.url_transform(u)
         if site.include_prefixes and not any(u.startswith(p) for p in site.include_prefixes):
             continue
         if site.exclude_prefixes and any(u.startswith(p) for p in site.exclude_prefixes):

@@ -10,8 +10,9 @@ The current monitored non-game sites are:
 
 - `mediaio`: `media.io`
 - `pincel`: `pincel.app`
+- `notegpt`: `notegpt.io`
 
-The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio` and `pincel`.
+The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio`, `pincel`, and `notegpt`.
 
 ## Machine Roles
 
@@ -59,7 +60,7 @@ Source files:
 
 - `checker.py`: Fetches sitemap URLs, filters monitored URLs, and stores first-seen URLs in SQLite.
 - `collect_new_pages.py`: Generates Markdown reports from first-seen URL rows.
-- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio` and `pincel`.
+- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, and `notegpt`.
 - `collect_new_games.py`: Legacy game-name report helper.
 
 Runtime state and artifacts:
@@ -86,12 +87,12 @@ Git policy:
 Run this from the project root on the Mac Mini:
 
 ```bash
-python3 run_daily_report.py --site mediaio --site pincel --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
 ```
 
 This command:
 
-- Fetches configured sitemaps for `mediaio` and `pincel`.
+- Fetches configured sitemaps for `mediaio`, `pincel`, and `notegpt`.
 - Inserts newly discovered URLs into `sitemaps.db`.
 - Generates a dated Markdown report in `reports/YYYY-MM-DD.md`.
 
@@ -109,7 +110,7 @@ Recommended high-level Hermes task:
 
 ```bash
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
 git add reports
 git commit -m "Update sitemap report"
 git push
@@ -121,7 +122,7 @@ Suggested safer shell flow:
 
 ```bash
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
 git add reports
 if ! git diff --cached --quiet; then
   git commit -m "Update sitemap report"

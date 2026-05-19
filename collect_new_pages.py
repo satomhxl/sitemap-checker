@@ -34,6 +34,11 @@ SITES: dict[str, CollectConfig] = {
         locale_segments=("br", "de", "es", "fr", "id", "it", "jp", "ko"),
     ),
     "pincel": CollectConfig(name="pincel"),
+    "notegpt": CollectConfig(
+        name="notegpt",
+        drop_prefix_segments=("blog", "chatgpt", "ai-models"),
+        locale_segments=("cn", "de", "es", "fr", "id", "ja", "jp", "ko", "pt", "ru", "zh-TW"),
+    ),
 }
 
 

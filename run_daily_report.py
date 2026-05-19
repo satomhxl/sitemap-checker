@@ -6,7 +6,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
-DEFAULT_SITES = ("mediaio", "pincel")
+DEFAULT_SITES = ("mediaio", "pincel", "notegpt")
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -18,8 +18,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--site",
         action="append",
-        choices=("crazygames", "playgama", "gamedistribution", "gamemonetize", "mediaio", "pincel"),
-        help="Site to check and report. Defaults to mediaio and pincel.",
+        choices=("crazygames", "playgama", "gamedistribution", "gamemonetize", "mediaio", "pincel", "notegpt"),
+        help="Site to check and report. Defaults to mediaio, pincel, and notegpt.",
     )
     return p
 
