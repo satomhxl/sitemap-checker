@@ -6,7 +6,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence, Set
+from typing import Iterable, List, Optional, Sequence, Set, Tuple
 from urllib.parse import unquote, urlparse
 from zoneinfo import ZoneInfo
 
@@ -83,6 +83,28 @@ def _path_segments(url: str, cfg: CollectConfig) -> List[str]:
     return segments
 
 
+def _canonical_slug(url: str, cfg: CollectConfig) -> Tuple[str, ...]:
+    return tuple(_path_segments(url, cfg))
+
+
+def get_historical_canonical_slugs(
+    conn: sqlite3.Connection,
+    *,
+    site: str,
+    cfg: CollectConfig,
+    before_ts: int,
+) -> Set[Tuple[str, ...]]:
+    cur = conn.execute(
+        """
+        SELECT url
+        FROM seen_urls
+        WHERE site = ? AND first_seen_ts < ?
+        """,
+        (site, before_ts),
+    )
+    return {_canonical_slug(row["url"], cfg) for row in cur.fetchall()}
+
+
 def keyword_from_url(url: str, cfg: CollectConfig) -> Optional[str]:
     try:
         segments = _path_segments(url, cfg)
@@ -139,19 +161,38 @@ def build_report(
     for site_name in selected_sites:
         cfg = SITES[site_name]
         rows = get_recent_rows(conn, site=cfg.name, since_ts=since_ts)
+        historical_canonical_slugs: Set[Tuple[str, ...]] = set()
+        if cfg.locale_segments and rows:
+            historical_canonical_slugs = get_historical_canonical_slugs(
+                conn,
+                site=cfg.name,
+                cfg=cfg,
+                before_ts=since_ts,
+            )
+
         items = []
+        locale_variant_count = 0
         for row in rows:
             keyword = keyword_from_url(row["url"], cfg)
             if not keyword:
+                continue
+            if historical_canonical_slugs and _canonical_slug(row["url"], cfg) in historical_canonical_slugs:
+                locale_variant_count += 1
                 continue
             items.append((keyword, row["url"], row["first_seen_iso"]))
         items = _dedupe_items(items)
         total += len(items)
 
-        lines.append(f"## {cfg.name} ({len(items)})")
+        if cfg.locale_segments:
+            lines.append(f"## {cfg.name} ({len(items)} new pages + {locale_variant_count} locale variants)")
+        else:
+            lines.append(f"## {cfg.name} ({len(items)})")
         if not items:
             lines.append("")
             lines.append("No new pages in this window.")
+            if locale_variant_count:
+                lines.append("")
+                lines.append(f"*... and {locale_variant_count} more locale variants of existing pages*")
             lines.append("")
             continue
 
@@ -161,6 +202,9 @@ def build_report(
         for keyword, url, first_seen in items:
             safe_keyword = keyword.replace("|", "\\|")
             lines.append(f"| {safe_keyword} | {url} | {first_seen} |")
+        if locale_variant_count:
+            lines.append("")
+            lines.append(f"*... and {locale_variant_count} more locale variants of existing pages*")
         lines.append("")
 
     lines.insert(4, f"Total keyword candidates: {total}")
