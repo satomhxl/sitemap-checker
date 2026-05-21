@@ -64,6 +64,15 @@ SITES: dict[str, CollectConfig] = {
             "zh",
         ),
     ),
+    "magnific": CollectConfig(
+        name="magnific",
+        drop_prefix_segments=("ai", "academy", "tutorial", "course", "lesson"),
+        locale_segments=("de", "es", "fr", "it", "ja", "ko", "pt", "zh"),
+    ),
+    "magichour": CollectConfig(
+        name="magichour",
+        drop_prefix_segments=("blog", "models", "products", "templates", "tools", "use-cases"),
+    ),
 }
 
 

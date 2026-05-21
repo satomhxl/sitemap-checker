@@ -4,7 +4,7 @@ import sqlite3
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Callable, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Callable, Iterable, List, Literal, Optional, Sequence, Set, Tuple
 from xml.etree import ElementTree
 
 import requests
@@ -21,6 +21,7 @@ class SiteConfig:
     url_transform: Optional[Callable[[str], str]] = None
     # Optional extra filter hook for sites with more complex rules.
     extra_filter: Optional[Callable[[str], bool]] = None
+    access_mode: Literal["direct", "optional_direct", "manual_weekly"] = "direct"
 
 
 SITES: dict[str, SiteConfig] = {
@@ -151,7 +152,56 @@ SITES: dict[str, SiteConfig] = {
             )
         ),
     ),
+    "magichour": SiteConfig(
+        name="magichour",
+        # Declared in https://magichour.ai/robots.txt
+        sitemap_urls=("https://magichour.ai/sitemap-index.xml",),
+        include_prefixes=(
+            "https://magichour.ai/blog/",
+            "https://magichour.ai/models/",
+            "https://magichour.ai/products/",
+            "https://magichour.ai/templates/",
+            "https://magichour.ai/tools/",
+            "https://magichour.ai/use-cases/",
+        ),
+        exclude_prefixes=(
+            "https://magichour.ai/api/",
+            "https://magichour.ai/blog/authors/",
+            "https://magichour.ai/blog/categories/",
+            "https://magichour.ai/templates/details/",
+            "https://magichour.ai/templates/search",
+        ),
+    ),
+    "magnific": SiteConfig(
+        name="magnific",
+        # Confirmed in https://www.magnific.com/sitemap.xml.
+        # Only monitor AI/tool and academy content, not Freepik-style asset inventory sitemaps.
+        sitemap_urls=(
+            "https://www.magnific.com/ai-sitemap.xml",
+            "https://www.magnific.com/academy-sitemap.xml",
+        ),
+        include_prefixes=(
+            "https://www.magnific.com/ai",
+            "https://www.magnific.com/academy",
+            "https://www.magnific.com/designer",
+            "https://www.magnific.com/icon-editor",
+        ),
+        exclude_prefixes=(
+            "https://www.magnific.com/ai/contributors/",
+            "https://www.magnific.com/ai/pricing",
+        ),
+        extra_filter=lambda url: url.rstrip("/") != "https://www.magnific.com/ai",
+        access_mode="manual_weekly",
+    ),
 }
+
+
+def automatic_site_names() -> List[str]:
+    return [name for name, site in SITES.items() if site.access_mode != "manual_weekly"]
+
+
+def manual_weekly_site_names() -> List[str]:
+    return [name for name, site in SITES.items() if site.access_mode == "manual_weekly"]
 
 
 def _utc_now_ts() -> int:
@@ -399,6 +449,12 @@ def check_site(
     """
     Returns (newly_inserted_this_run, recent_within_window).
     """
+    if site.access_mode == "manual_weekly":
+        raise RuntimeError(
+            f"{site.name} is configured for manual weekly sitemap import. "
+            "Use manual_sitemap_task.py and import_manual_sitemaps.py."
+        )
+
     all_urls: Set[str] = set()
     for sitemap_url in site.sitemap_urls:
         all_urls.update(fetch_sitemap_urls(sitemap_url, insecure=insecure))
@@ -446,7 +502,7 @@ def main() -> int:
 
     selected_sites = args.site or []
     if args.all or not selected_sites:
-        selected_sites = list(SITES.keys())
+        selected_sites = automatic_site_names()
 
     if args.insecure:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -460,6 +516,13 @@ def main() -> int:
         had_errors = False
         for site_name in selected_sites:
             site = SITES[site_name]
+            if site.access_mode == "manual_weekly":
+                print(f"\n--- Skipping manual weekly site: {site.name} ---")
+                print(
+                    f"[{site.name}] Use manual_sitemap_task.py to generate the weekly browser task, "
+                    "then import_manual_sitemaps.py after saving XML files."
+                )
+                continue
             print(f"\n--- Checking: {site.name} ---")
             try:
                 new_urls, recent_urls = check_site(
@@ -469,8 +532,11 @@ def main() -> int:
                     insecure=args.insecure,
                 )
             except Exception as e:
-                had_errors = True
-                print(f"[{site.name}] ERROR: {e}")
+                if site.access_mode == "optional_direct":
+                    print(f"[{site.name}] OPTIONAL ERROR: {e}")
+                else:
+                    had_errors = True
+                    print(f"[{site.name}] ERROR: {e}")
                 continue
 
             if new_urls:

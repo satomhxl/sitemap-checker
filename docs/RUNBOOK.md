@@ -16,8 +16,10 @@ The current monitored non-game sites are:
 - `pincel`: `pincel.app`
 - `notegpt`: `notegpt.io`
 - `imgkits`: `imgkits.com`
+- `magichour`: `magichour.ai`
+- `magnific`: `magnific.com` (weekly manual import because script clients may receive 403)
 
-The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio`, `pincel`, `notegpt`, and `imgkits`.
+The project still contains the original game-site monitoring logic, but the daily automatic focus is currently `mediaio`, `pincel`, `notegpt`, `imgkits`, and `magichour`. `magnific` is monitored through the weekly manual sitemap import flow.
 
 ## Machine Roles
 
@@ -69,13 +71,16 @@ Source files:
 
 - `checker.py`: Fetches sitemap URLs, filters monitored URLs, and stores first-seen URLs in SQLite.
 - `collect_new_pages.py`: Generates Markdown reports from first-seen URL rows.
-- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, `notegpt`, and `imgkits`.
+- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, `notegpt`, `imgkits`, and `magichour`.
+- `manual_sitemap_task.py`: Generates weekly browser instructions for sites that reject script sitemap fetches.
+- `import_manual_sitemaps.py`: Imports browser-saved sitemap XML snapshots into `sitemaps.db`.
 - `collect_new_games.py`: Legacy game-name report helper.
 
 Runtime state and artifacts:
 
 - `sitemaps.db`: SQLite state database. It stores first-seen URL timestamps.
 - `reports/YYYY-MM-DD.md`: Daily generated Markdown report. These files are produced by the Mac Mini runtime and then pulled by MacBook for review.
+- `manual_sitemaps/SITE/YYYY-MM-DD/*.xml`: Temporary browser-saved XML snapshots for weekly manual imports. These files stay local and are ignored by Git.
 - `logs/`: Legacy game report output when the GitHub Actions workflow is used.
 
 Current recommendation:
@@ -86,7 +91,7 @@ Current recommendation:
 
 Git policy:
 
-- `.gitignore` excludes local SQLite state, WAL/SHM files, Python caches, macOS noise, and ad hoc logs.
+- `.gitignore` excludes local SQLite state, WAL/SHM files, Python caches, macOS noise, ad hoc logs, and browser-saved manual sitemap snapshots.
 - `reports/` is intentionally not ignored so the Mac Mini can push generated daily reports to GitHub.
 - Source code should normally be changed on the MacBook, then pushed to GitHub for the Mac Mini to pull.
 - Runtime artifacts should normally be generated on the Mac Mini.
@@ -97,12 +102,12 @@ Git policy:
 Run this from the project root on the Mac Mini:
 
 ```bash
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --since-hours 24
 ```
 
 This command:
 
-- Fetches configured sitemaps for `mediaio`, `pincel`, `notegpt`, and `imgkits`.
+- Fetches configured sitemaps for `mediaio`, `pincel`, `notegpt`, `imgkits`, and `magichour`.
 - Inserts newly discovered URLs into `sitemaps.db`.
 - Generates a dated Markdown report in `reports/YYYY-MM-DD.md`.
 
@@ -120,7 +125,7 @@ Recommended high-level Hermes task:
 
 ```bash
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --since-hours 24
 git add reports
 git commit -m "Update sitemap report"
 git push
@@ -132,7 +137,7 @@ Suggested safer shell flow:
 
 ```bash
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --since-hours 24
 git add reports
 if ! git diff --cached --quiet; then
   git commit -m "Update sitemap report"
@@ -165,6 +170,37 @@ The current project already generates Markdown reports. A future AI agent can ad
 
 Avoid starting with Electron, Tauri, or a backend API unless the dashboard grows beyond static-file needs.
 
+## Weekly Manual Sitemap Workflow
+
+Use this flow for sites that match the project goal but reject direct script sitemap fetches.
+
+Generate the weekly browser task:
+
+```bash
+python3 manual_sitemap_task.py --site magnific --snapshot-date YYYY-MM-DD
+```
+
+Open each listed sitemap URL in a normal browser and save the XML source to the path shown by the task, for example:
+
+```text
+manual_sitemaps/magnific/YYYY-MM-DD/ai-sitemap.xml
+manual_sitemaps/magnific/YYYY-MM-DD/academy-sitemap.xml
+```
+
+Import the saved snapshot into the same SQLite history:
+
+```bash
+python3 import_manual_sitemaps.py --site magnific --snapshot-date YYYY-MM-DD
+```
+
+Generate the weekly report:
+
+```bash
+python3 collect_new_pages.py --site magnific --since-hours 168 --report-dir reports/weekly
+```
+
+Commit only the generated report files when needed. Do not commit `manual_sitemaps/`; those XML files are temporary local inputs.
+
 ## Adding A New Site
 
 Before adding a newly configured site to the default daily Mac Mini command, verify that its sitemap endpoints return XML from the Mac Mini environment. Some sites may expose sitemap URLs in `robots.txt` but return Cloudflare or other bot-protection HTML to script clients. The checker intentionally avoids storing URLs extracted from HTML error pages.
@@ -185,6 +221,8 @@ python3 collect_new_pages.py --site SITE_NAME --db /private/tmp/sitemap-checker-
 ```
 
 8. Once verified, run the real baseline on the Mac Mini.
+
+Note for `magnific`: the browser-visible sitemap index includes many Freepik-style asset inventory sitemaps. The configured monitor intentionally uses only `ai-sitemap.xml` and `academy-sitemap.xml`. `magnific` is marked `manual_weekly` because some script environments receive 403/security-filter responses even though a browser can view the XML.
 
 ## AI Agent Notes
 

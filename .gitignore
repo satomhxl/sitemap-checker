@@ -18,5 +18,8 @@ tmp_*.txt
 tmp_*.log
 new_games_24h.txt
 
+# Browser-saved sitemap snapshots for weekly manual imports.
+manual_sitemaps/
+
 # Daily reports are intentionally not ignored. The Mac Mini can commit
 # reports/ back to GitHub as the human-readable archive.

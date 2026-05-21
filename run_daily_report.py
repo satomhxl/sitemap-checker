@@ -6,7 +6,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
-DEFAULT_SITES = ("mediaio", "pincel", "notegpt", "imgkits")
+DEFAULT_SITES = ("mediaio", "pincel", "notegpt", "imgkits", "magichour")
+MANUAL_WEEKLY_SITES = ("magnific",)
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -27,8 +28,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
             "pincel",
             "notegpt",
             "imgkits",
+            "magichour",
+            "magnific",
         ),
-        help="Site to check and report. Defaults to mediaio, pincel, notegpt, and imgkits.",
+        help="Site to check and report. Defaults to mediaio, pincel, notegpt, imgkits, and magichour.",
     )
     return p
 
@@ -36,6 +39,17 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = _build_arg_parser().parse_args()
     sites = args.site or list(DEFAULT_SITES)
+    manual_sites = [site for site in sites if site in MANUAL_WEEKLY_SITES]
+    if manual_sites:
+        print(
+            "Skipping manual weekly site(s) in daily report flow: "
+            + ", ".join(manual_sites)
+            + ". Use manual_sitemap_task.py and import_manual_sitemaps.py instead."
+        )
+        sites = [site for site in sites if site not in MANUAL_WEEKLY_SITES]
+    if not sites:
+        print("No automatic sites selected.")
+        return 0
 
     checker_cmd = [sys.executable, "checker.py", "--db", args.db, "--show", "5"]
     report_cmd = [
