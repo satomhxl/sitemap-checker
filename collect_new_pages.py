@@ -39,6 +39,7 @@ SITES: dict[str, CollectConfig] = {
         drop_prefix_segments=("blog", "chatgpt", "ai-models"),
         locale_segments=("cn", "de", "es", "fr", "id", "ja", "jp", "ko", "pt", "ru", "zh-TW"),
     ),
+    "appbrain": CollectConfig(name="appbrain"),
 }
 
 
@@ -118,6 +119,8 @@ def keyword_from_url(url: str, cfg: CollectConfig) -> Optional[str]:
                 raw = " ".join(segments[1:] or segments[:1])
             else:
                 raw = segments[-1]
+        elif cfg.name == "appbrain" and segments[0] == "app" and len(segments) >= 2:
+            raw = segments[1]
         elif cfg.name == "gamemonetize":
             raw = re.sub(r"-game$", "", segments[-1])
         else:

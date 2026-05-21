@@ -11,10 +11,13 @@ The current monitored non-game sites are:
 - `mediaio`: `media.io`
 - `pincel`: `pincel.app`
 - `notegpt`: `notegpt.io`
+- `appbrain`: `appbrain.com`
 
-The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio`, `pincel`, and `notegpt`.
+The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio`, `pincel`, and `notegpt`. `appbrain` is configured as an optional site because its sitemap endpoints may return bot-protection HTML from some environments.
 
 ## Machine Roles
+
+Before modifying this project, read this runbook first. It defines the source-of-truth workflow for runtime state, report artifacts, and Git operations.
 
 ### MacBook
 
@@ -27,6 +30,8 @@ Use it to:
 - Pull generated reports from GitHub.
 - Open the future lightweight Web dashboard locally.
 
+Do not normally use the MacBook to generate or commit files under `reports/`. If `reports/` appears as untracked or modified during development, treat it as a runtime/report artifact first, not as part of a source-code change.
+
 ### Mac Mini
 
 Primary runtime machine.
@@ -36,7 +41,7 @@ Use it to:
 - Pull the latest code from GitHub.
 - Run the daily sitemap check.
 - Generate daily local reports.
-- Optionally commit and push generated report files back to GitHub.
+- Commit and push generated report files back to GitHub when the report archive is enabled.
 
 ## Data Flow
 
@@ -60,13 +65,13 @@ Source files:
 
 - `checker.py`: Fetches sitemap URLs, filters monitored URLs, and stores first-seen URLs in SQLite.
 - `collect_new_pages.py`: Generates Markdown reports from first-seen URL rows.
-- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, and `notegpt`.
+- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, and `notegpt` by default. `appbrain` can be selected explicitly with `--site appbrain` after verifying sitemap access on the Mac Mini.
 - `collect_new_games.py`: Legacy game-name report helper.
 
 Runtime state and artifacts:
 
 - `sitemaps.db`: SQLite state database. It stores first-seen URL timestamps.
-- `reports/YYYY-MM-DD.md`: Daily generated Markdown report.
+- `reports/YYYY-MM-DD.md`: Daily generated Markdown report. These files are produced by the Mac Mini runtime and then pulled by MacBook for review.
 - `logs/`: Legacy game report output when the GitHub Actions workflow is used.
 
 Current recommendation:
@@ -81,6 +86,7 @@ Git policy:
 - `reports/` is intentionally not ignored so the Mac Mini can push generated daily reports to GitHub.
 - Source code should normally be changed on the MacBook, then pushed to GitHub for the Mac Mini to pull.
 - Runtime artifacts should normally be generated on the Mac Mini.
+- During MacBook development, do not stage `reports/` unless explicitly asked. If a pull/rebase is blocked by local `reports/` files, preserve or back them up instead of deleting them blindly, then pull the canonical report files from GitHub.
 
 ## Daily Command
 
@@ -156,6 +162,8 @@ The current project already generates Markdown reports. A future AI agent can ad
 Avoid starting with Electron, Tauri, or a backend API unless the dashboard grows beyond static-file needs.
 
 ## Adding A New Site
+
+Before adding a newly configured site to the default daily Mac Mini command, verify that its sitemap endpoints return XML from the Mac Mini environment. Some sites, including `appbrain`, may expose sitemap URLs in `robots.txt` but return Cloudflare or other bot-protection HTML to script clients. The checker intentionally fails on HTML responses instead of storing URLs extracted from error pages.
 
 When adding a new site:
 

@@ -127,6 +127,35 @@ SITES: dict[str, SiteConfig] = {
         url_transform=lambda url: url.replace("https://notegpt.io//", "https://notegpt.io/", 1),
         extra_filter=lambda url: url.rstrip("/") != "https://notegpt.io",
     ),
+    "appbrain": SiteConfig(
+        name="appbrain",
+        # Declared in https://www.appbrain.com/robots.txt
+        sitemap_urls=(
+            "https://www.appbrain.com/sitemap.xml",
+            "https://www.appbrain.com/sitemap-apps.xml",
+            "https://www.appbrain.com/sitemap-articles.xml",
+        ),
+        include_prefixes=("https://www.appbrain.com/",),
+        exclude_prefixes=(
+            "https://www.appbrain.com/admin/",
+            "https://www.appbrain.com/app_details/",
+            "https://www.appbrain.com/apptimizer/",
+            "https://www.appbrain.com/authpropagation",
+            "https://www.appbrain.com/createaccount",
+            "https://www.appbrain.com/email_settings",
+            "https://www.appbrain.com/filedownload",
+            "https://www.appbrain.com/login",
+            "https://www.appbrain.com/loginerror",
+            "https://www.appbrain.com/logout",
+            "https://www.appbrain.com/my_apps",
+            "https://www.appbrain.com/password_reset",
+            "https://www.appbrain.com/search",
+            "https://www.appbrain.com/settings",
+            "https://www.appbrain.com/signup",
+            "https://www.appbrain.com/user/",
+        ),
+        extra_filter=lambda url: url.rstrip("/") != "https://www.appbrain.com",
+    ),
 }
 
 
@@ -159,6 +188,11 @@ def _looks_like_xml(content: bytes) -> bool:
     # Cheap check; avoids trying to XML-parse HTML error pages.
     head = content.lstrip()[:100].lower()
     return head.startswith(b"<?xml") or head.startswith(b"<urlset") or head.startswith(b"<sitemapindex")
+
+
+def _looks_like_html(content: bytes) -> bool:
+    head = content.lstrip()[:100].lower()
+    return head.startswith(b"<!doctype html") or head.startswith(b"<html")
 
 
 def _extract_urls_regex(text: str) -> List[str]:
@@ -201,6 +235,11 @@ def fetch_sitemap_urls(
 
     # Prefer XML parsing; fallback to regex extraction for non-XML endpoints.
     if not _looks_like_xml(content):
+        if _looks_like_html(content):
+            raise RuntimeError(
+                f"Expected sitemap XML from {sitemap_url}, but got HTML. "
+                "The site may be returning a bot-protection or error page."
+            )
         text = r.text
         urls = _extract_urls_regex(text)
         return sorted(set(urls))

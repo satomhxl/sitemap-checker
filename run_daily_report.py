@@ -18,7 +18,16 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--site",
         action="append",
-        choices=("crazygames", "playgama", "gamedistribution", "gamemonetize", "mediaio", "pincel", "notegpt"),
+        choices=(
+            "crazygames",
+            "playgama",
+            "gamedistribution",
+            "gamemonetize",
+            "mediaio",
+            "pincel",
+            "notegpt",
+            "appbrain",
+        ),
         help="Site to check and report. Defaults to mediaio, pincel, and notegpt.",
     )
     return p
