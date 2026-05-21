@@ -4,15 +4,20 @@ This document describes the intended daily workflow for this project. It is writ
 
 ## Goal
 
-Use sitemap monitoring to discover newly published pages on selected websites. The daily output should help identify keyword and demand signals from new URLs.
+Use sitemap monitoring to discover newly published pages on selected SEO-driven websites. The daily output should help identify keyword demand, content strategy, and emerging topic signals from new indexable URLs.
+
+This is not intended to be a broad sitemap archive or a directory-site crawler. The monitored sites should be selected because their new pages are likely to reveal organic-search strategy: landing pages, tool pages, articles, templates, comparison pages, or other content built to capture search demand.
+
+Avoid adding sites where sitemap changes mostly represent inventory churn or database growth, such as pure directories, catalogs, marketplaces, app listings, product databases, or generic index pages. Those sites can create a lot of low-signal URLs without telling us much about SEO topic strategy.
 
 The current monitored non-game sites are:
 
 - `mediaio`: `media.io`
 - `pincel`: `pincel.app`
 - `notegpt`: `notegpt.io`
+- `imgkits`: `imgkits.com`
 
-The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio`, `pincel`, and `notegpt`.
+The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio`, `pincel`, `notegpt`, and `imgkits`.
 
 ## Machine Roles
 
@@ -64,7 +69,7 @@ Source files:
 
 - `checker.py`: Fetches sitemap URLs, filters monitored URLs, and stores first-seen URLs in SQLite.
 - `collect_new_pages.py`: Generates Markdown reports from first-seen URL rows.
-- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, and `notegpt`.
+- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, `notegpt`, and `imgkits`.
 - `collect_new_games.py`: Legacy game-name report helper.
 
 Runtime state and artifacts:
@@ -92,12 +97,12 @@ Git policy:
 Run this from the project root on the Mac Mini:
 
 ```bash
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
 ```
 
 This command:
 
-- Fetches configured sitemaps for `mediaio`, `pincel`, and `notegpt`.
+- Fetches configured sitemaps for `mediaio`, `pincel`, `notegpt`, and `imgkits`.
 - Inserts newly discovered URLs into `sitemaps.db`.
 - Generates a dated Markdown report in `reports/YYYY-MM-DD.md`.
 
@@ -115,7 +120,7 @@ Recommended high-level Hermes task:
 
 ```bash
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
 git add reports
 git commit -m "Update sitemap report"
 git push
@@ -127,7 +132,7 @@ Suggested safer shell flow:
 
 ```bash
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
 git add reports
 if ! git diff --cached --quiet; then
   git commit -m "Update sitemap report"
@@ -166,18 +171,20 @@ Before adding a newly configured site to the default daily Mac Mini command, ver
 
 When adding a new site:
 
-1. Check `https://example.com/robots.txt` for sitemap URLs.
-2. Add a `SiteConfig` entry in `checker.py`.
-3. Choose useful `include_prefixes` and `exclude_prefixes`.
-4. Add keyword extraction behavior in `collect_new_pages.py` if the URL structure needs special handling.
-5. Run a test with a temporary DB:
+1. Confirm the site matches the project goal: it should be an SEO-focused site whose new pages can reveal keyword demand or content strategy.
+2. Avoid pure directory/catalog/listing sites unless there is a clear reason their new URLs represent SEO topic expansion rather than inventory churn.
+3. Check `https://example.com/robots.txt` for sitemap URLs.
+4. Add a `SiteConfig` entry in `checker.py`.
+5. Choose useful `include_prefixes` and `exclude_prefixes`.
+6. Add keyword extraction behavior in `collect_new_pages.py` if the URL structure needs special handling.
+7. Run a test with a temporary DB:
 
 ```bash
 python3 checker.py --site SITE_NAME --db /private/tmp/sitemap-checker-test.db --show 5
 python3 collect_new_pages.py --site SITE_NAME --db /private/tmp/sitemap-checker-test.db --since-hours 24 --stdout
 ```
 
-6. Once verified, run the real baseline on the Mac Mini.
+8. Once verified, run the real baseline on the Mac Mini.
 
 ## AI Agent Notes
 

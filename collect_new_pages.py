@@ -39,6 +39,31 @@ SITES: dict[str, CollectConfig] = {
         drop_prefix_segments=("blog", "chatgpt", "ai-models"),
         locale_segments=("cn", "de", "es", "fr", "id", "ja", "jp", "ko", "pt", "ru", "zh-TW"),
     ),
+    "imgkits": CollectConfig(
+        name="imgkits",
+        locale_segments=(
+            "ar",
+            "da",
+            "de",
+            "es",
+            "fi",
+            "fr",
+            "he",
+            "it",
+            "jp",
+            "ko",
+            "nl",
+            "no",
+            "pl",
+            "pt",
+            "ro",
+            "ru",
+            "sv",
+            "th",
+            "tr",
+            "zh",
+        ),
+    ),
 }
 
 

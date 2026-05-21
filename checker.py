@@ -127,6 +127,30 @@ SITES: dict[str, SiteConfig] = {
         url_transform=lambda url: url.replace("https://notegpt.io//", "https://notegpt.io/", 1),
         extra_filter=lambda url: url.rstrip("/") != "https://notegpt.io",
     ),
+    "imgkits": SiteConfig(
+        name="imgkits",
+        # Declared in https://www.imgkits.com/robots.txt
+        sitemap_urls=("https://www.imgkits.com/sitemap_index.xml",),
+        include_prefixes=("https://www.imgkits.com/",),
+        exclude_prefixes=(
+            "https://www.imgkits.com/404/",
+            "https://www.imgkits.com/api/",
+            "https://www.imgkits.com/login/",
+            "https://www.imgkits.com/signup/",
+            "https://www.imgkits.com/test/",
+        ),
+        extra_filter=lambda url: url.rstrip("/") != "https://www.imgkits.com"
+        and not url.rstrip("/").endswith(
+            (
+                "/about-us",
+                "/affiliate",
+                "/contact-us",
+                "/privacy",
+                "/privacy-policy",
+                "/terms",
+            )
+        ),
+    ),
 }
 
 

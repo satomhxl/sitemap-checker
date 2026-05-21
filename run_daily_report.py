@@ -6,7 +6,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
-DEFAULT_SITES = ("mediaio", "pincel", "notegpt")
+DEFAULT_SITES = ("mediaio", "pincel", "notegpt", "imgkits")
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -26,8 +26,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
             "mediaio",
             "pincel",
             "notegpt",
+            "imgkits",
         ),
-        help="Site to check and report. Defaults to mediaio, pincel, and notegpt.",
+        help="Site to check and report. Defaults to mediaio, pincel, notegpt, and imgkits.",
     )
     return p
 

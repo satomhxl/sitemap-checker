@@ -88,7 +88,7 @@ If macOS complains about Python certificates or package installation, fix Python
 Run the daily command manually once:
 
 ```bash
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
 ```
 
 Expected behavior:
@@ -96,6 +96,7 @@ Expected behavior:
 - `mediaio` fetches multiple `media.io` sitemap files.
 - `pincel` fetches `https://pincel.app/sitemap.xml`.
 - `notegpt` fetches `https://notegpt.io/sitemap.xml` and `https://notegpt.io/sitemap_chatgpt.xml`.
+- `imgkits` fetches `https://www.imgkits.com/sitemap_index.xml`.
 - `sitemaps.db` is created or updated.
 - `reports/YYYY-MM-DD.md` is created.
 
@@ -148,7 +149,7 @@ Use this command flow:
 ```bash
 cd /path/to/sitemap-checker
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
 git add reports
 if ! git diff --cached --quiet; then
   git commit -m "Update sitemap report"
@@ -159,7 +160,7 @@ fi
 Suggested Hermes instruction:
 
 ```text
-Every day, open the sitemap-checker project on this Mac Mini. Pull the latest code, run `python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24`, then commit and push changed files under `reports/` only if there are actual changes. If the command fails, send me the error summary in Telegram. Do not delete `sitemaps.db`.
+Every day, open the sitemap-checker project on this Mac Mini. Pull the latest code, run `python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24`, then commit and push changed files under `reports/` only if there are actual changes. If the command fails, send me the error summary in Telegram. Do not delete `sitemaps.db`.
 ```
 
 If Telegram is already connected, use Telegram for status messages:
@@ -209,8 +210,8 @@ Recommended first dashboard deliverables:
 The daily flow would then become:
 
 ```bash
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --since-hours 24
-python3 export_events.py --site mediaio --site pincel --site notegpt --output public/data/events.json
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --since-hours 24
+python3 export_events.py --site mediaio --site pincel --site notegpt --site imgkits --output public/data/events.json
 ```
 
 Then the MacBook can review:
@@ -238,7 +239,7 @@ Use `python3`, not `python`.
 Run this manually on the Mac Mini:
 
 ```bash
-python3 checker.py --site mediaio --site pincel --site notegpt --show 5
+python3 checker.py --site mediaio --site pincel --site notegpt --site imgkits --show 5
 ```
 
 If it fails, confirm DNS, network access, and Python SSL/certificate behavior.
