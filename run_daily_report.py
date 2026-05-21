@@ -26,7 +26,6 @@ def _build_arg_parser() -> argparse.ArgumentParser:
             "mediaio",
             "pincel",
             "notegpt",
-            "appbrain",
         ),
         help="Site to check and report. Defaults to mediaio, pincel, and notegpt.",
     )

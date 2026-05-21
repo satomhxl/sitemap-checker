@@ -18,7 +18,6 @@ class SiteConfig:
     sitemap_urls: Tuple[str, ...]
     include_prefixes: Tuple[str, ...]
     exclude_prefixes: Tuple[str, ...] = ()
-    optional: bool = False
     url_transform: Optional[Callable[[str], str]] = None
     # Optional extra filter hook for sites with more complex rules.
     extra_filter: Optional[Callable[[str], bool]] = None
@@ -127,36 +126,6 @@ SITES: dict[str, SiteConfig] = {
         ),
         url_transform=lambda url: url.replace("https://notegpt.io//", "https://notegpt.io/", 1),
         extra_filter=lambda url: url.rstrip("/") != "https://notegpt.io",
-    ),
-    "appbrain": SiteConfig(
-        name="appbrain",
-        # Declared in https://www.appbrain.com/robots.txt
-        sitemap_urls=(
-            "https://www.appbrain.com/sitemap.xml",
-            "https://www.appbrain.com/sitemap-apps.xml",
-            "https://www.appbrain.com/sitemap-articles.xml",
-        ),
-        include_prefixes=("https://www.appbrain.com/",),
-        exclude_prefixes=(
-            "https://www.appbrain.com/admin/",
-            "https://www.appbrain.com/app_details/",
-            "https://www.appbrain.com/apptimizer/",
-            "https://www.appbrain.com/authpropagation",
-            "https://www.appbrain.com/createaccount",
-            "https://www.appbrain.com/email_settings",
-            "https://www.appbrain.com/filedownload",
-            "https://www.appbrain.com/login",
-            "https://www.appbrain.com/loginerror",
-            "https://www.appbrain.com/logout",
-            "https://www.appbrain.com/my_apps",
-            "https://www.appbrain.com/password_reset",
-            "https://www.appbrain.com/search",
-            "https://www.appbrain.com/settings",
-            "https://www.appbrain.com/signup",
-            "https://www.appbrain.com/user/",
-        ),
-        optional=True,
-        extra_filter=lambda url: url.rstrip("/") != "https://www.appbrain.com",
     ),
 }
 
@@ -476,11 +445,8 @@ def main() -> int:
                     insecure=args.insecure,
                 )
             except Exception as e:
-                if site.optional:
-                    print(f"[{site.name}] WARNING: optional site check failed: {e}")
-                else:
-                    had_errors = True
-                    print(f"[{site.name}] ERROR: {e}")
+                had_errors = True
+                print(f"[{site.name}] ERROR: {e}")
                 continue
 
             if new_urls:

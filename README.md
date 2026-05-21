@@ -14,7 +14,6 @@ Current configs include the original game sites plus:
 - `mediaio`: `media.io` and its locale sitemaps from `robots.txt`
 - `pincel`: `pincel.app/sitemap.xml`, focused on `/tools/`, `/free/`, and `/media/` URLs
 - `notegpt`: `notegpt.io/sitemap.xml` and `notegpt.io/sitemap_chatgpt.xml`
-- `appbrain`: `appbrain.com/sitemap.xml`, `appbrain.com/sitemap-apps.xml`, and `appbrain.com/sitemap-articles.xml`
 
 ## Daily Local Report
 
@@ -43,15 +42,12 @@ Useful options:
 ```bash
 python3 run_daily_report.py --since-hours 24
 python3 run_daily_report.py --site mediaio --site pincel --site notegpt
-python3 run_daily_report.py --site appbrain
-python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --site appbrain --stdout
+python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --stdout
 ```
 
 ## Manual Checks
 
 ```bash
-python3 checker.py --site mediaio --site pincel --site notegpt --site appbrain --show 10
-python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --site appbrain --since-hours 24
+python3 checker.py --site mediaio --site pincel --site notegpt --show 10
+python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --since-hours 24
 ```
-
-Note: `appbrain` is configured as an optional site because its sitemap endpoints may return Cloudflare bot-protection HTML from some environments. If its sitemap check fails, the checker reports a warning and does not fail the whole task.
