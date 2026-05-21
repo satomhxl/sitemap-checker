@@ -192,6 +192,30 @@ SITES: dict[str, SiteConfig] = {
         ),
         extra_filter=lambda url: _airbrush_extra_filter(url),
     ),
+    "kittl": SiteConfig(
+        name="kittl",
+        # Declared in https://www.kittl.com/robots.txt.
+        # Monitor SEO category/use-case pages, not help-center or user profile inventory.
+        sitemap_urls=(
+            "https://kittl.com/sitemap/templates.xml",
+            "https://kittl.com/sitemap/create.xml",
+            "https://kittl.com/sitemap/tools.xml",
+            "https://kittl.com/sitemap/features.xml",
+            "https://kittl.com/sitemap/other.xml",
+        ),
+        include_prefixes=(
+            "https://www.kittl.com/templates",
+            "https://www.kittl.com/create",
+            "https://www.kittl.com/tools",
+            "https://www.kittl.com/feature/",
+            "https://www.kittl.com/features",
+            "https://www.kittl.com/solutions",
+        ),
+        exclude_prefixes=(
+            "https://www.kittl.com/feature/about-kittl-v1",
+            "https://www.kittl.com/feature/career",
+        ),
+    ),
     "magnific": SiteConfig(
         name="magnific",
         # Confirmed in https://www.magnific.com/sitemap.xml.

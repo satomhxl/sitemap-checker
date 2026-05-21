@@ -18,9 +18,10 @@ The current monitored non-game sites are:
 - `imgkits`: `imgkits.com`
 - `magichour`: `magichour.ai`
 - `airbrush`: `airbrush.com`
+- `kittl`: `kittl.com`
 - `magnific`: `magnific.com` (weekly manual import because script clients may receive 403)
 
-The project still contains the original game-site monitoring logic, but the daily automatic focus is currently `mediaio`, `pincel`, `notegpt`, `imgkits`, `magichour`, and `airbrush`. `magnific` is monitored through the weekly manual sitemap import flow.
+The project still contains the original game-site monitoring logic, but the daily automatic focus is currently `mediaio`, `pincel`, `notegpt`, `imgkits`, `magichour`, `airbrush`, and `kittl`. `magnific` is monitored through the weekly manual sitemap import flow.
 
 ## Machine Roles
 
@@ -72,7 +73,7 @@ Source files:
 
 - `checker.py`: Fetches sitemap URLs, filters monitored URLs, and stores first-seen URLs in SQLite.
 - `collect_new_pages.py`: Generates Markdown reports from first-seen URL rows.
-- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, `notegpt`, `imgkits`, `magichour`, and `airbrush`.
+- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, `notegpt`, `imgkits`, `magichour`, `airbrush`, and `kittl`.
 - `manual_sitemap_task.py`: Generates weekly browser instructions for sites that reject script sitemap fetches.
 - `import_manual_sitemaps.py`: Imports browser-saved sitemap XML snapshots into `sitemaps.db`.
 - `collect_new_games.py`: Legacy game-name report helper.
@@ -103,12 +104,12 @@ Git policy:
 Run this from the project root on the Mac Mini:
 
 ```bash
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --since-hours 24
 ```
 
 This command:
 
-- Fetches configured sitemaps for `mediaio`, `pincel`, `notegpt`, `imgkits`, `magichour`, and `airbrush`.
+- Fetches configured sitemaps for `mediaio`, `pincel`, `notegpt`, `imgkits`, `magichour`, `airbrush`, and `kittl`.
 - Inserts newly discovered URLs into `sitemaps.db`.
 - Generates a dated Markdown report in `reports/YYYY-MM-DD.md`.
 
@@ -126,7 +127,7 @@ Recommended high-level Hermes task:
 
 ```bash
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --since-hours 24
 git add reports
 git commit -m "Update sitemap report"
 git push
@@ -138,7 +139,7 @@ Suggested safer shell flow:
 
 ```bash
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --since-hours 24
 git add reports
 if ! git diff --cached --quiet; then
   git commit -m "Update sitemap report"

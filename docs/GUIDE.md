@@ -88,7 +88,7 @@ If macOS complains about Python certificates or package installation, fix Python
 Run the daily command manually once:
 
 ```bash
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --since-hours 24
 ```
 
 Expected behavior:
@@ -99,6 +99,7 @@ Expected behavior:
 - `imgkits` fetches `https://www.imgkits.com/sitemap_index.xml`.
 - `magichour` fetches `https://magichour.ai/sitemap-index.xml`, excluding template detail inventory and other low-signal pages.
 - `airbrush` fetches `https://airbrush.com/sitemap.xml`, excluding legal, FAQ, pricing, account, and app handoff pages.
+- `kittl` fetches selected `kittl.com` SEO sitemaps for templates, create pages, tools, features, and solution pages while excluding help-center and user profile inventory.
 - `sitemaps.db` is created or updated.
 - `reports/YYYY-MM-DD.md` is created.
 
@@ -151,7 +152,7 @@ Use this command flow:
 ```bash
 cd /path/to/sitemap-checker
 git pull
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --since-hours 24
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --since-hours 24
 git add reports
 if ! git diff --cached --quiet; then
   git commit -m "Update sitemap report"
@@ -162,7 +163,7 @@ fi
 Suggested Hermes instruction:
 
 ```text
-Every day, open the sitemap-checker project on this Mac Mini. Pull the latest code, run `python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --since-hours 24`, then commit and push changed files under `reports/` only if there are actual changes. If the command fails, send me the error summary in Telegram. Do not delete `sitemaps.db`.
+Every day, open the sitemap-checker project on this Mac Mini. Pull the latest code, run `python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --since-hours 24`, then commit and push changed files under `reports/` only if there are actual changes. If the command fails, send me the error summary in Telegram. Do not delete `sitemaps.db`.
 ```
 
 If Telegram is already connected, use Telegram for status messages:
@@ -238,8 +239,8 @@ Recommended first dashboard deliverables:
 The daily flow would then become:
 
 ```bash
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --since-hours 24
-python3 export_events.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --output public/data/events.json
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --since-hours 24
+python3 export_events.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --output public/data/events.json
 ```
 
 Then the MacBook can review:
@@ -267,7 +268,7 @@ Use `python3`, not `python`.
 Run this manually on the Mac Mini:
 
 ```bash
-python3 checker.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --show 5
+python3 checker.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --site kittl --show 5
 ```
 
 If it fails, confirm DNS, network access, and Python SSL/certificate behavior.

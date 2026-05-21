@@ -78,6 +78,10 @@ SITES: dict[str, CollectConfig] = {
         drop_prefix_segments=("blog", "create"),
         locale_segments=("de", "es", "fr", "pt", "ru"),
     ),
+    "kittl": CollectConfig(
+        name="kittl",
+        drop_prefix_segments=("create", "feature", "features", "solutions", "templates", "tools"),
+    ),
 }
 
 

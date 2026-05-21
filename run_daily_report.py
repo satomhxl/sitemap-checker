@@ -6,7 +6,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
-DEFAULT_SITES = ("mediaio", "pincel", "notegpt", "imgkits", "magichour", "airbrush")
+DEFAULT_SITES = ("mediaio", "pincel", "notegpt", "imgkits", "magichour", "airbrush", "kittl")
 MANUAL_WEEKLY_SITES = ("magnific",)
 
 
@@ -30,9 +30,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
             "imgkits",
             "magichour",
             "airbrush",
+            "kittl",
             "magnific",
         ),
-        help="Site to check and report. Defaults to mediaio, pincel, notegpt, imgkits, magichour, and airbrush.",
+        help="Site to check and report. Defaults to mediaio, pincel, notegpt, imgkits, magichour, airbrush, and kittl.",
     )
     return p
 
