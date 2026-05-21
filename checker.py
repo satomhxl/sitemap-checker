@@ -18,6 +18,7 @@ class SiteConfig:
     sitemap_urls: Tuple[str, ...]
     include_prefixes: Tuple[str, ...]
     exclude_prefixes: Tuple[str, ...] = ()
+    optional: bool = False
     url_transform: Optional[Callable[[str], str]] = None
     # Optional extra filter hook for sites with more complex rules.
     extra_filter: Optional[Callable[[str], bool]] = None
@@ -154,6 +155,7 @@ SITES: dict[str, SiteConfig] = {
             "https://www.appbrain.com/signup",
             "https://www.appbrain.com/user/",
         ),
+        optional=True,
         extra_filter=lambda url: url.rstrip("/") != "https://www.appbrain.com",
     ),
 }
@@ -474,8 +476,11 @@ def main() -> int:
                     insecure=args.insecure,
                 )
             except Exception as e:
-                had_errors = True
-                print(f"[{site.name}] ERROR: {e}")
+                if site.optional:
+                    print(f"[{site.name}] WARNING: optional site check failed: {e}")
+                else:
+                    had_errors = True
+                    print(f"[{site.name}] ERROR: {e}")
                 continue
 
             if new_urls:

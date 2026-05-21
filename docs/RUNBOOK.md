@@ -13,7 +13,7 @@ The current monitored non-game sites are:
 - `notegpt`: `notegpt.io`
 - `appbrain`: `appbrain.com`
 
-The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio`, `pincel`, and `notegpt`. `appbrain` is configured as an optional site because its sitemap endpoints may return bot-protection HTML from some environments.
+The project still contains the original game-site monitoring logic, but the daily operational focus is currently `mediaio`, `pincel`, and `notegpt`. `appbrain` is configured as an optional site because its sitemap endpoints may return bot-protection HTML from some environments; appbrain failures should warn but not fail the whole task.
 
 ## Machine Roles
 
@@ -65,7 +65,7 @@ Source files:
 
 - `checker.py`: Fetches sitemap URLs, filters monitored URLs, and stores first-seen URLs in SQLite.
 - `collect_new_pages.py`: Generates Markdown reports from first-seen URL rows.
-- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, and `notegpt` by default. `appbrain` can be selected explicitly with `--site appbrain` after verifying sitemap access on the Mac Mini.
+- `run_daily_report.py`: Runs the daily `checker.py` plus `collect_new_pages.py` flow for `mediaio`, `pincel`, and `notegpt` by default. `appbrain` can be selected explicitly with `--site appbrain`; if its sitemap check is blocked, the checker prints a warning and continues.
 - `collect_new_games.py`: Legacy game-name report helper.
 
 Runtime state and artifacts:
@@ -163,7 +163,7 @@ Avoid starting with Electron, Tauri, or a backend API unless the dashboard grows
 
 ## Adding A New Site
 
-Before adding a newly configured site to the default daily Mac Mini command, verify that its sitemap endpoints return XML from the Mac Mini environment. Some sites, including `appbrain`, may expose sitemap URLs in `robots.txt` but return Cloudflare or other bot-protection HTML to script clients. The checker intentionally fails on HTML responses instead of storing URLs extracted from error pages.
+Before adding a newly configured site to the default daily Mac Mini command, verify that its sitemap endpoints return XML from the Mac Mini environment. Some sites, including `appbrain`, may expose sitemap URLs in `robots.txt` but return Cloudflare or other bot-protection HTML to script clients. The checker intentionally avoids storing URLs extracted from HTML error pages. Optional sites such as `appbrain` should warn and continue instead of failing the whole task.
 
 When adding a new site:
 

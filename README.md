@@ -54,4 +54,4 @@ python3 checker.py --site mediaio --site pincel --site notegpt --site appbrain -
 python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --site appbrain --since-hours 24
 ```
 
-Note: `appbrain` is configured as an optional site because its sitemap endpoints may return Cloudflare bot-protection HTML from some environments. Verify it on the Mac Mini before adding it to the daily Hermes command.
+Note: `appbrain` is configured as an optional site because its sitemap endpoints may return Cloudflare bot-protection HTML from some environments. If its sitemap check fails, the checker reports a warning and does not fail the whole task.
