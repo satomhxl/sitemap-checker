@@ -18,6 +18,7 @@ Current configs include the original game sites plus:
 - `notegpt`: `notegpt.io/sitemap.xml` and `notegpt.io/sitemap_chatgpt.xml`
 - `imgkits`: `imgkits.com/sitemap_index.xml` and its locale sitemaps
 - `magichour`: `magichour.ai/sitemap-index.xml`, focused on tools, products, models, use cases, templates, and blog pages while excluding template detail inventory
+- `airbrush`: `airbrush.com/sitemap.xml`, focused on tool and blog pages while excluding legal, FAQ, pricing, account, and app handoff pages
 - `magnific`: weekly manual monitor for `magnific.com/ai-sitemap.xml` and `magnific.com/academy-sitemap.xml`, focused on AI tools and learning content rather than Freepik-style asset inventory
 
 ## Daily Local Report
@@ -34,7 +35,7 @@ Run this command from the project directory:
 python3 run_daily_report.py
 ```
 
-It checks `mediaio`, `pincel`, `notegpt`, `imgkits`, and `magichour`, updates `sitemaps.db`, and writes a dated Markdown report:
+It checks `mediaio`, `pincel`, `notegpt`, `imgkits`, `magichour`, and `airbrush`, updates `sitemaps.db`, and writes a dated Markdown report:
 
 ```text
 reports/YYYY-MM-DD.md
@@ -46,15 +47,15 @@ Useful options:
 
 ```bash
 python3 run_daily_report.py --since-hours 24
-python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour
-python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --stdout
+python3 run_daily_report.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush
+python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --stdout
 ```
 
 ## Manual Checks
 
 ```bash
-python3 checker.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --show 10
-python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --since-hours 24
+python3 checker.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --show 10
+python3 collect_new_pages.py --site mediaio --site pincel --site notegpt --site imgkits --site magichour --site airbrush --since-hours 24
 ```
 
 ## Weekly Manual Sitemap Import

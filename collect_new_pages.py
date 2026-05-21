@@ -73,6 +73,11 @@ SITES: dict[str, CollectConfig] = {
         name="magichour",
         drop_prefix_segments=("blog", "models", "products", "templates", "tools", "use-cases"),
     ),
+    "airbrush": CollectConfig(
+        name="airbrush",
+        drop_prefix_segments=("blog", "create"),
+        locale_segments=("de", "es", "fr", "pt", "ru"),
+    ),
 }
 
 

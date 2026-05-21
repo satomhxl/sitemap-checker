@@ -172,6 +172,26 @@ SITES: dict[str, SiteConfig] = {
             "https://magichour.ai/templates/search",
         ),
     ),
+    "airbrush": SiteConfig(
+        name="airbrush",
+        # Declared in https://airbrush.com/robots.txt
+        sitemap_urls=("https://airbrush.com/sitemap.xml",),
+        include_prefixes=("https://airbrush.com/",),
+        exclude_prefixes=(
+            "https://airbrush.com/aigc/",
+            "https://airbrush.com/account/",
+            "https://airbrush.com/docs/",
+            "https://airbrush.com/faq",
+            "https://airbrush.com/legal",
+            "https://airbrush.com/mixed/",
+            "https://airbrush.com/monitoring",
+            "https://airbrush.com/pricing",
+            "https://airbrush.com/tools/FeatureTemplate",
+            "https://airbrush.com/tools/app",
+            "https://airbrush.com/_next/",
+        ),
+        extra_filter=lambda url: _airbrush_extra_filter(url),
+    ),
     "magnific": SiteConfig(
         name="magnific",
         # Confirmed in https://www.magnific.com/sitemap.xml.
@@ -194,6 +214,40 @@ SITES: dict[str, SiteConfig] = {
         access_mode="manual_weekly",
     ),
 }
+
+
+def _airbrush_extra_filter(url: str) -> bool:
+    path = re.sub(r"^https://airbrush\.com/?", "", url).strip("/")
+    if not path:
+        return False
+
+    parts = path.split("/")
+    if parts[0] in {"de", "es", "fr", "pt", "ru"}:
+        parts = parts[1:]
+    if not parts:
+        return False
+
+    low_signal_first_segments = {
+        "account-callback",
+        "account",
+        "aigc",
+        "docs",
+        "faq",
+        "legal",
+        "mixed",
+        "monitoring",
+        "pricing",
+    }
+    if parts[0] in low_signal_first_segments:
+        return False
+    if parts[:2] == ["tools", "app"]:
+        return False
+    if parts[:2] == ["all-tools", "ListBox"]:
+        return False
+    if parts[0] in {"passure-notice", "research-awards"}:
+        return False
+
+    return True
 
 
 def automatic_site_names() -> List[str]:
